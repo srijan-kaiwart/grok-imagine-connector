@@ -175,8 +175,37 @@ intend to publish.
 - **Never use `delogo` for a final.** It leaves a visible blur band on any busy corner. It is a draft/preview mode only, fine on plain moving backgrounds.
 - `--cut` alternatives when `bottom` crops something important: `right`, `center` (subject stays centred), `topleft` (preserves the left edge — good when the subject sits left of centre).
 - Needs ffmpeg. Dimensions are always preserved.
-- Seamless erase (AI inpainting) is not available here — it needs a Python toolchain with model weights. Crop is the artifact-free option in this package; don't claim an inpaint mode exists.
 - Only use this on generations the user made themselves. Don't offer it for other people's content, and don't imply it changes anything about disclosing that media is AI-generated.
+
+### Seamless erase for stills (optional, heavy — ASK FIRST)
+
+`tools/inpaint.py` in the skill repo erases the mark with the LaMa model, leaving
+no crop and no blur. It is the best result for a still, and it is **not installed
+by default**.
+
+**Never install it without asking.** It pulls torch (~1.2 GB) plus a one-time
+~200 MB model download. Say the size out loud and wait for a yes:
+
+> Erasing it seamlessly needs a one-time ~1.5 GB install (PyTorch + the model).
+> Want me to set that up, or should I just crop it? Cropping is instant and
+> zooms about 12%.
+
+Only after they agree:
+
+```bash
+pip install simple-lama-inpainting pillow
+python tools/inpaint.py in.png -o out.png
+```
+
+- **Stills only.** On video LaMa runs per frame — roughly 4 minutes per 6s clip
+  on CPU — which the user will read as a hang. For video use `clean` instead;
+  on 16:9 the reservation recipe above makes that crop free anyway.
+- **Don't inpaint a mark sitting on text.** It mangles letterforms. Regenerate
+  with the corner kept clear instead.
+- If the mark overlaps a person's face in a busy corner, LaMa can smear them.
+  Crop is safer there.
+- Default to `clean` in every other case. A 1.5 GB install to avoid a 3.8% crop
+  on a 9:16 image is a bad trade, and offering it as if it were free is worse.
 
 ## Errors
 
