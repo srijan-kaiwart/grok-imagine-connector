@@ -12,7 +12,9 @@ description: |
   clips into one", or when the user wants free/unlimited generation
   instead of paid APIs. Modes: text-to-image, image-to-image,
   text-to-video, frame-to-video, ingredients-to-video; plus
-  auto-extend (longer clips) and merge (montage via ffmpeg).
+  auto-extend (longer clips), merge (montage via ffmpeg), and
+  clean (remove the Grok corner mark from your own generations —
+  also "remove watermark", "clean this reference image").
   NOT for: Grok chat/text tasks, paid API generation (use
   higgsfield-generate for Higgsfield models).
 argument-hint: "[prompt] [--mode <mode>] [--image <path>]"
@@ -110,7 +112,8 @@ grok-auto generate create text-to-video --prompt "..." --extend 2 --extend-promp
 
 - `--extend N` = number of +6s extensions after the base. Videos take longer (~2–4 min per beat) — bump `--wait-timeout`.
 - **grok caps one continuously-extended video at ~30s** (≈5×6s beats). For longer, generate separate clips and `merge` them (below).
-- The side-panel "Extend" mode is a storyboard: one prompt per 6s beat (clamped to the 30s cap). The CLI's `--extend` uses one prompt for all beats.
+- `--extend-prompt` is optional: without it every beat reuses the base prompt; with it, all extensions use that prompt instead.
+- Extend is CLI/agent-only — the extension's side panel deliberately doesn't expose it, so don't tell the user to look for it there.
 
 ## Merge separate videos
 
@@ -123,6 +126,27 @@ grok-auto merge "clip1.mp4" "clip2.mp4" "clip3.mp4" -o "montage.mp4"
 - Re-encodes by default so mixed resolutions (480p + 720p) merge cleanly with exact duration + A/V sync. `--fast` stream-copies (quicker, but may drift the total duration).
 - Needs ffmpeg installed (`winget install Gyan.FFmpeg`, or set `FFMPEG_PATH`). Use extend (above) for a continuous shot; use merge for stitching unrelated clips.
 - **No limit** on clip count or total length (unlike grok's 30s extend cap) — this is how you build videos longer than 30s: make several ≤30s clips, then merge.
+
+## Remove the Grok mark
+
+Grok stamps a semi-transparent mark in the bottom-right corner. `clean` removes it from images and videos:
+
+```bash
+grok-auto clean in.mp4  -o out.mp4                          # crop (default)
+grok-auto clean in.png  -o out.png  --mode delogo
+grok-auto clean in.mp4  -o out.mp4  --mode cover --logo my_logo.png
+```
+
+| Mode | What it does | Cost |
+|---|---|---|
+| `crop` | Largest same-aspect window excluding the mark, rescaled to the original size | ~12% zoom, no artifacts |
+| `delogo` | Interpolates over the box, full frame kept | faint blur patch |
+| `cover` | Overlays your own logo on the mark | none (rebrands it) |
+
+- **Clean reference images BEFORE reusing them.** When a marked image is fed back into `frame-to-video` or `ingredients-to-video`, the mark compounds in the output — a second, distorted copy appears. This is the highest-value use of the command; do it automatically whenever a generated image becomes an input.
+- `--cut` picks what `crop` sacrifices: `auto` (default, keeps the larger window), `bottom`, `right`, `center` (subject stays centred), `topleft` (preserves the left edge — good when the subject sits left of centre).
+- Needs ffmpeg. Dimensions are always preserved.
+- Only use this on generations the user made themselves. Don't offer it for other people's content, and don't imply it changes anything about disclosing that media is AI-generated.
 
 ## Errors
 
