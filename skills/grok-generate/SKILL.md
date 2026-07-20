@@ -143,9 +143,39 @@ grok-auto clean in.mp4  -o out.mp4  --mode cover --logo my_logo.png
 | `delogo` | Interpolates over the box, full frame kept | faint blur patch |
 | `cover` | Overlays your own logo on the mark | none (rebrands it) |
 
-- **Clean reference images BEFORE reusing them.** When a marked image is fed back into `frame-to-video` or `ingredients-to-video`, the mark compounds in the output — a second, distorted copy appears. This is the highest-value use of the command; do it automatically whenever a generated image becomes an input.
-- `--cut` picks what `crop` sacrifices: `auto` (default, keeps the larger window), `bottom`, `right`, `center` (subject stays centred), `topleft` (preserves the left edge — good when the subject sits left of centre).
+### Which approach, by aspect ratio
+
+The mark is ~17% of frame WIDTH, so what a crop costs depends entirely on the
+shape of the frame. These figures were measured, not estimated:
+
+| Case | Do this | Cost |
+|---|---|---|
+| **9:16 (vertical)** | `clean --cut bottom` | **~3.8%** — effectively free, no planning needed |
+| **16:9, not generated yet** | reserve an empty bottom band in the prompt, then `--cut bottom` | **zero** — see recipe below |
+| **16:9, already generated** | `--cut bottom`, or `--mode cover` to brand it | ~12.8% of the framing |
+| **Stills** | same as above | crop only |
+
+`--cut auto` (the default) already picks `bottom` for both 16:9 and 9:16, so
+plain `grok-auto clean in.mp4 -o out.mp4` is usually right.
+
+**The 16:9 reservation recipe — this is the one worth using.** Because the mark
+always lands bottom-right, a shot composed with an empty bottom band loses
+nothing when that band is cropped away. Add to the prompt:
+
+> …all subjects kept in the upper two thirds of the frame, a large empty
+> ground/road filling the entire bottom quarter, nothing near the bottom edge
+
+then run `clean --cut bottom`. The mark sits on the empty band; the crop removes
+only that band. Prompt for this whenever the user asks for 16:9 output they
+intend to publish.
+
+### Rules
+
+- **Clean reference images BEFORE reusing them.** When a marked image is fed into `frame-to-video` or `ingredients-to-video`, grok paints the mark INTO the new scene — it is no longer an overlay and cannot be removed afterwards. Cleaning the reference first is the only fix, so do it automatically whenever a generated image becomes an input.
+- **Never use `delogo` for a final.** It leaves a visible blur band on any busy corner. It is a draft/preview mode only, fine on plain moving backgrounds.
+- `--cut` alternatives when `bottom` crops something important: `right`, `center` (subject stays centred), `topleft` (preserves the left edge — good when the subject sits left of centre).
 - Needs ffmpeg. Dimensions are always preserved.
+- Seamless erase (AI inpainting) is not available here — it needs a Python toolchain with model weights. Crop is the artifact-free option in this package; don't claim an inpaint mode exists.
 - Only use this on generations the user made themselves. Don't offer it for other people's content, and don't imply it changes anything about disclosing that media is AI-generated.
 
 ## Errors
