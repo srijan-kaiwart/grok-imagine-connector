@@ -47,18 +47,34 @@ That last one is the requirement users miss, and it is not optional: Chrome
 throttles timers and rendering in hidden tabs, so a covered window makes
 generation stall or fail rather than run slowly.
 
-Practical setups that work: Chrome on a second monitor, or Chrome side-by-side
-with the user's editor. Tell them this in plain words the first time, and again
-any time the symptom below appears.
+**Tell them HOW, not just what.** "Keep it visible" is useless advice on its
+own — the user is about to switch to their editor, which is what hides it. Give
+them the arrangement:
+
+> Put Chrome on the left half of your screen and your editor on the right, so
+> both stay visible. Quickest way: click the Chrome window and press
+> **Win + ←**, then click your editor and press **Win + →**. (On a Mac, drag
+> them side by side; on two monitors, just leave Chrome on the second screen.)
+>
+> The extension's **Connect** tab also has a "Put this window on the left half"
+> button that does the Chrome half for you.
+
+Once that layout is set, it survives the whole session and the problem stops
+recurring — which is why it is worth 10 seconds up front rather than repeating
+the warning after every stall.
 
 **Whenever `NOT CONNECTED`, a timeout, or a stall occurs — stop and instruct the
 user.** Never retry silently, and never assume the window is visible because it
 was earlier. Say something like:
 
-> Open https://grok.com/imagine in Chrome, log in, and keep that window visible
-> beside this one — don't minimise it or cover it while it generates.
+> Open https://grok.com/imagine in Chrome and log in. Then put Chrome on the
+> left half of your screen (click it, press **Win + ←**) and this editor on the
+> right (**Win + →**) — generation stalls whenever that tab is hidden or
+> minimised.
 
-Then wait for their confirmation before re-running.
+Then wait for their confirmation before re-running. If it stalls a second time,
+don't repeat the warning — ask directly whether the grok window is currently
+visible on screen, because the usual cause is that it got covered again.
 
 ## UX Rules
 
