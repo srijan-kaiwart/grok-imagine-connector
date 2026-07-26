@@ -30,8 +30,15 @@ Submit generation jobs to grok.com/imagine through the Grok Imagine Connector ex
 Before any generation:
 
 1. Run `grok-auto status`. The bridge daemon auto-starts on first use; you never start it manually.
+   - The FIRST time in a session this reports `extension: connected` and `grok tab: visible`,
+     say so as your own message right away — don't wait to be asked:
+     "Connected! I can generate images and videos on Grok now — just ask."
+     Once said, don't repeat it on later checks in the same session.
 2. If it prints `extension: NOT CONNECTED` — walk the user through the **Browser requirement** below, wait for their confirmation, then re-check.
-3. If a job fails with `not logged in` — ask the user to log in to grok.com in that Chrome window and confirm.
+3. **If it prints `grok tab: HIDDEN`** — stop before generating and tell the user to bring the grok.com window to the front (see the arrangement below). Jobs submitted while it's hidden will stall. This line is your early-warning signal; check it whenever you run `status`, and re-run `status` right before a batch.
+4. If a job fails with `not logged in` — ask the user to log in to grok.com in that Chrome window and confirm.
+
+The `status` output reports grok tab visibility live (the extension updates it the instant the window is minimised or covered), so you can catch a stall *before* wasting a generation rather than after it times out. With `--json`, the field is `grokVisible` (`true` / `false` / `null` = unknown).
 
 ## Browser requirement — state this clearly, don't assume it
 
